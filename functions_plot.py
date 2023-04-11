@@ -1,13 +1,32 @@
-def get_coordinates(G, source_node):
+#===============================================================
+# Plotting coordinates:
+
+
+def get_coordinates(G):
 
     import pandas as pd
     
-    # Output source node:
-    node_order_dict = {source_node : '1'}
+    # Output
+    
+    node_order_dict = {}
+    order = 1
+    
+    
+    # Determine all source nodes in order of importnce:
+    source_list = source_node_order(G)  
+    
+    # Traverse through all source nodes and fetch depth nodes in 
+    for source_node in source_list:
+        # Output source node:
+        node_order_dict[source_node] = str(order)
 
-    # Get subsequent nodes
-    node_order_dict = traverse_node(G, source_node, node_order_dict)
+        # Get subsequent nodes
+        node_order_dict = traverse_node(G, source_node, node_order_dict)        
 
+        # increase order num
+        order += 1
+        
+        
     # sort elements in order
     df = pd.DataFrame.from_dict(node_order_dict.items()).rename(columns={0: "Node", 1: "order"}).sort_values("order")
 
@@ -37,6 +56,22 @@ def get_coordinates(G, source_node):
     return pos
 
 
+def source_node_order(G):
+    
+    import networkx as nx
+    
+    # output 
+    node_len_dict = {}
+    
+    #fetch all source nodes:
+    source_nodes = sorted([node for node in G.nodes() if G.in_degree(node) == 0])
+    
+    for source in source_nodes:
+        # determine size of traversal path
+        node_len_dict[source] = len(nx.dfs_tree(G, source))
+        
+    # reorder list based on length of elements
+    return [k for k, v in sorted(node_len_dict.items(), key=lambda item: item[1], reverse=True)]
 
 
 def traverse_node(G, source_node, node_order_dict):
@@ -71,24 +106,53 @@ def traverse_node(G, source_node, node_order_dict):
 
 
 
+#===============================================================
+# Plotting table:
 
 def get_code_table(G):
     import pandas as pd
     
     # Output dict
-    df_dict = {'file_name' : [],
-               'file_desc' : [],
-               'element_code' : []
+    df_dict = {'Name' : [],
+               'Description' : [],
+               'Code' : [],
+               'Dependencies' : []
               }
     
     for node in G.nodes():        
-        df_dict['file_name'].append(node)
-        df_dict['file_desc'].append(G.nodes[node]['file_location'] + '\n' + G.nodes[node]['file_lines'])
-        df_dict['element_code'].append(G.nodes[node]['element_code'])
+        df_dict['Name'].append(node)
+        df_dict['Description'].append(G.nodes[node]['file_location'] + '\n' + G.nodes[node]['file_lines'])
+        df_dict['Code'].append(G.nodes[node]['element_code'])
+        
+        dependency_string = get_sucessors(G, node)
+        df_dict['Dependencies'].append(dependency_string)
     
     df = pd.DataFrame(df_dict)
     return df
 
+
+def get_sucessors(G, node):
+    import networkx as nx
+    
+    # fetch sucessors:
+    successors_list = list(G.successors(node))
+    invocation_properties = {} 
+    
+    # extract information about sucesssor invocation
+    for sucessor in successors_list:
+        invocation = G.edges()[node, sucessor]['invocation']
+        for element in invocation:
+            input_param = str(element['Input_parameters']).replace(', ', ',\n ')
+            
+            invocation_properties[element['Invocation_order']] = 'Order: ' + str(element['Invocation_order']) + ',\nFunction: ' + sucessor + ',\nParameters: ' + input_param + '\n'
+    
+    # Reorder based on invocation and prepare description:
+    
+    output_str = ''
+    for k, v in invocation_properties.items(): 
+        output_str = output_str + v +'\n'
+    
+    return output_str
 
 def draw_table(df):
     
@@ -109,12 +173,27 @@ def draw_table(df):
                                  style_cell={'backgroundColor': 'rgb(217, 225, 242)',
                                              'textAlign': 'left',
                                              'vertical-align' : 'top',
-                                             'color': 'black',
-                                             'white-space': 'pre'},
+                                             'color': 'black'
+                                            },
                                  # Column size
-                                 style_cell_conditional=[{'if': {'column_id': 'file_name'}, 'width': '5%'},
-                                                         {'if': {'column_id': 'file_desc'}, 'width': '10%'},
-                                                         {'if': {'column_id': 'element_code'}, 'width': '85%'}],
+                                 style_cell_conditional=[{'if': {'column_id': 'Name'}, 
+                                                          'Width': '10vh',
+                                                          'overflow-wrap': 'anywhere',
+                                                          'whiteSpace':'pre-wrap', 
+                                                          'height':'auto'},
+                                                         {'if': {'column_id': 'Description'}, 
+                                                          'Width': '20vh',
+                                                          'overflow-wrap': 'anywhere',
+                                                          'whiteSpace':'pre-wrap', 
+                                                          'height':'auto'},
+                                                         {'if': {'column_id': 'Code'}, 
+                                                          'Width': '50vh',
+                                                          'white-space': 'pre-wrap'},
+                                                         {'if': {'column_id': 'Dependencies'}, 
+                                                          'Width': '20vh',
+                                                          'overflow-wrap': 'anywhere',
+                                                          'whiteSpace':'pre-wrap', 
+                                                          'height':'auto'}],
                                  # Table size
                                  fixed_rows={'headers': True},
                                  style_table={'overflowY': 'scroll', 
@@ -125,6 +204,8 @@ def draw_table(df):
     return table
 
 
+#===============================================================
+# Plotting Graph:
 
 def get_edge_trace(G):
     
@@ -180,10 +261,10 @@ def get_node_trace(G):
             element_comments = G.nodes[node]['element_comments']
             element_output = G.nodes[node]['element_output']
             # Text
-            node_text = '<i>Name: {0}<br>File Location: {1}<br>Input: {2}<br>Output: {3}'.format(node, node_location, element_input, element_output)
+            node_text = '<i>Name: {0}<br>Type: {1}<br>File Location: {2}<br>Input: {3}<br>Output: {4}'.format(node, node_type, node_location, element_input, element_output)
         else:
             # Text
-            node_text = '<i>Name: {0}<br>File Location: {1}'.format(node, node_location)
+            node_text = '<i>Name: {0}<br>Type: {1}<br>File Location: {2}'.format(node, node_type,node_location)
    
         node_name.append(node)
         list_node_text.append(node_text)
@@ -223,8 +304,6 @@ def plot_graph(edge_trace, node_trace):
     # plot
     fig = go.Figure(data=[edge_trace, node_trace],
              layout=go.Layout(
-#                  width= 1500,
-#                  height= 1000,
                  showlegend=False,
                  margin=dict(b=20,l=5,r=5,t=40),
                  xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
@@ -233,12 +312,13 @@ def plot_graph(edge_trace, node_trace):
              )
                    )
     
-#     fig.update_layout(xaxis_range=[-5,100])
-#     fig.update_layout(yaxis_range=[18,0])
     
     return fig
 
 
+
+#===============================================================
+# Adding interactions:
 
 #  Scatter -> Table interaction
 def update_query(selectedData):
@@ -259,8 +339,6 @@ def update_query(selectedData):
         query = ' '.join(query.split(' ')[:-2])
         
     return query
-
-
 
 
 # Table -> Scatter interaction
@@ -299,8 +377,6 @@ def update_scatter(filter_query, fig_net, df):
 
     return fig_copy
 
-
-#======================================================================
 # Filter query syntax split
 def split_filter_part(filter_part):
     # Operator dict
