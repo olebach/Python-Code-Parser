@@ -1,3 +1,4 @@
+#================================================================
 def get_filepaths(directory, file_extention):
     """
     This function will generate the file names in a directory 
@@ -19,10 +20,8 @@ def get_filepaths(directory, file_extention):
                 file_paths.append(filepath)  # Add it to the list.
 
     return file_paths  # Self-explanatory.
-    
-    
-    
-    
+
+#================================================================
 def read_input(path):
     """
     Open file and read the code into a string
@@ -35,12 +34,8 @@ def read_input(path):
     
     return data
 
-
-
-
-
-
-def process_elements(code_strings, file_name, file_path):
+#================================================================
+def get_elements(code_strings, file_name, file_path):
 
     """
     This function searches for text patterns of functions, imports and classes and breaks the code into sections
@@ -49,15 +44,8 @@ def process_elements(code_strings, file_name, file_path):
     import re
     
     #--------------------------------------------------------
-    # 0 Output dict:
-    element_dict = {
-        'file_name'     : [],
-        'file_location' : [],
-        'element_line_number' : [],
-        'element_name'  : [],
-        'element_type'  : [],
-        'element_code'  : []
-    }
+    # 0 Output list:
+    element_list = []
     
     #--------------------------------------------------------
     # 1. Split text by lines:
@@ -96,9 +84,12 @@ def process_elements(code_strings, file_name, file_path):
             element_name = file_name
 
         # 3.1.b multiline import case:
-        elif multiline_import == 1 and ')' in line_clean:
-            # reset import
-            multiline_import = 0
+        elif multiline_import == 1:
+            if ')' in line_clean:
+                # reset import
+                multiline_import = 0
+            # Assign type:
+            line_type = 'Import multiline'
 
         # 3.2 Function
         elif line.startswith('def '):
@@ -118,7 +109,7 @@ def process_elements(code_strings, file_name, file_path):
                 element_name = re.findall('class (.*?):', line_clean)[0]   
                 
         # 3.4 Code
-        elif not ((line_clean.startswith('    ') or line_clean.strip() == '' or line_clean.strip() == '):') and (lag_line_type == 'Function' or lag_line_type == 'Class')):
+        elif not ((line_clean.startswith('    ') or line_clean.strip() == '' or line_clean.strip() == '):') and (lag_line_type == 'Function' or lag_line_type == 'Class' or lag_line_type == 'Class')):
             # Assign type:
             line_type = 'Code'            
             # Empty output
@@ -137,16 +128,23 @@ def process_elements(code_strings, file_name, file_path):
             lag_line_type = line_type
             
         else: 
-            # output everything retained:
-            element_dict['file_name'].append(file_name)
-            element_dict['file_location'].append(file_path) 
+            
+            # Fetch code lines
             if lag_line_num != (line_num-1):
-                element_dict['element_line_number'].append('Lines: '+str(lag_line_num)+'-'+str(line_num-1))
+                line_str = 'Lines: '+str(lag_line_num)+'-'+str(line_num-1)
             else:
-                element_dict['element_line_number'].append('Lines: '+str(lag_line_num))
-            element_dict['element_name'].append(lag_element_name)
-            element_dict['element_type'].append(lag_line_type)
-            element_dict['element_code'].append(lag_line)   
+                line_str = 'Lines: '+str(lag_line_num)
+                
+            # output everything retained:
+            element_list.append(
+                {'file_name'     : file_name,
+                 'file_location' : file_path,
+                 'file_line_number' : line_str,
+                 'element_name'  : lag_element_name,
+                 'element_type'  : lag_line_type,
+                 'element_code'  : lag_line
+                }
+            )
             
             # Get new lagged values:
             lag_element_name = element_name
@@ -159,23 +157,122 @@ def process_elements(code_strings, file_name, file_path):
         line_num +=1
         
     #--------------------------------------------------------
-    # 5. Output final values:
-    element_dict['file_name'].append(file_name)
-    element_dict['file_location'].append(file_path) 
+    # Fetch code lines
     if lag_line_num != (line_num-1):
-        element_dict['element_line_number'].append('Lines: '+str(lag_line_num)+'-'+str(line_num-1))
+        line_str = 'Lines: '+str(lag_line_num)+'-'+str(line_num-1)
     else:
-        element_dict['element_line_number'].append('Lines: '+str(lag_line_num))
-    element_dict['element_name'].append(lag_element_name)
-    element_dict['element_type'].append(lag_line_type)
-    element_dict['element_code'].append(lag_line)      
+        line_str = 'Lines: '+str(lag_line_num)
+    
+    # 5. Output final values:
+    element_list.append(
+        {'file_name'     : file_name,
+         'file_location' : file_path,
+         'file_line_number' : line_str,
+         'element_name'  : lag_element_name,
+         'element_type'  : lag_line_type,
+         'element_code'  : lag_line
+        }
+    )
+    
+    return element_list
+
+#================================================================
+def extract_import_values(code_str):
+    
+    """
+    Process import code to extract scenarios:
+        - from <library> import <function> or from <library> import (<function>,<function>)
+        - import <library>.<library>.<function>
+        - import <library>
+    """
+    
+    import re
+    
+    # Clean code string:
+    import_element = re.sub('#(.*)\n?', '', code_str) # Comments
+    import_element = re.sub(" as (.*)","", import_element) # Aliases
+    import_element = re.sub("\n","", import_element)
+           
 
     
-    return element_dict
+    if 'from ' in import_element:
+        # fetch library:
+        library_name = " ".join(re.findall("from (.*) import", import_element))
+
+        # Fetch imported functions
+        functions_all = " ".join(re.findall("import (.*)", import_element, re.DOTALL)) 
+        function_list = re.findall("[a-zA-Z_]+", functions_all)
+        
+        
+    # Check for scenario 2
+    elif "." in import_element:
+        
+        # Split string by '.'
+        library_functions_str = " ".join(re.findall("import (.*?) ", import_element)).split(".")
+
+        # fetch library:
+        library_name = " ".join(library_functions_str[:-1])
+        
+        # Fetch imported functions
+        function_list = library_functions_str[-1:]
+
+    # check for scenario 3
+    elif "import " in import_element:
+
+        # remove leading text before import
+        all_functions = " ".join(import_element.split('import')[1:]) 
+
+        # Fetch library:
+        library_name = " ".join(re.findall("[a-zA-Z_]+", all_functions, re.DOTALL))
+
+        # No imported functions
+        function_list = []        
+
+    return library_name, function_list 
 
 
 
-def parse_elements(elements_dict):
+def get_imports(code_list, file_name, file_path):
+        
+    """
+    Extract imported libraries and functions
+    """
+    
+    # Output list:    
+    values_dict = {}
+    
+    # Go through all elements:
+    for element in code_list:
+
+        # fetch type of structure:
+        code_type = element['element_type']   
+
+        # Identify source form which the functions/classes are imported
+        if (code_type == 'Import' or code_type == 'Import multiline'):
+            
+            # fetch code
+            code_str = element['element_code']
+            
+            # extract imports:
+            library_name, function_list = extract_import_values(code_str)
+            
+            # Add or append values to dict
+            values_dict[library_name] = values_dict.get(library_name, []) + function_list
+            
+    #-------------------------------------
+    #output dictionary:
+    import_dict = {
+        'File_name' : file_name,
+        'File_location' : file_path,
+        'Function_values': values_dict
+    }
+        
+    return import_dict
+
+
+
+#================================================================
+def profile_elements(code_list):
     
     """
     Code that profiles each element and extracts information.
@@ -183,64 +280,55 @@ def parse_elements(elements_dict):
     
     # Output list of all elements
     element_profile_list = []
-    dependency_name_list = []
-    values_dict = ''
+    dependency_name_dict = {}
     
     # Go through all elements in a dict:
-    for i in range(len(elements_dict['element_code'])):
+    for element in code_list:
         
         #-------------------------------------
         # Fetch information:
-        # code info
-        code_str = elements_dict['element_code'][i]
-                
-        # element type
-        element_type = elements_dict['element_type'][i]
-        
-        # Fetch object name:
-        element_name = elements_dict['element_name'][i]
-                
-        if code_str.strip() != '' and code_str.strip() != "\n":
+        code_str = element['element_code']  # code
+        element_type = element['element_type'] # element type
+        element_name = element['element_name'] # object name
+        file_name = element['file_name'] # file name:
+            
+        if code_str.strip() != '' and code_str.strip() != "\n": # if code not empty
 
             #-------------------------------------
             # Process functions and classes
             if (element_type == 'Function' or element_type == 'Class'):
-
-                # extract profile:
-                values_dict = extract_element_values(code_str, element_type)
                 
+                #-------------------------------------
+                # add values:  
+                element['Values'] = extract_element_values(code_str, element_type)
+                
+                #-------------------------------------
+                # output:
+                element_profile_list.append(element)   
+                
+                #-------------------------------------
                 # Store values of functions for identyfiying dependencies
-                dependency_name_list.append(element_name)
-                
-            #-------------------------------------  
-            # Prosess input structures
-            elif (element_type == 'Import' or element_type == 'Import multiline'):
-                # extract imports:
-                values_dict = extract_import_values(code_str)
+                dependency_name_dict[element_name] = dependency_name_dict.get(element_name, []) + [file_name]
 
             #-------------------------------------
             # Process code
             elif (element_type == 'Code'):
                 values_dict = ''
 
-            #-------------------------------------
-            #output dictionary:
-            element_profile_list.append(
-            {
-                'File_name' : elements_dict['file_name'][i],
-                'File_location' : elements_dict['file_location'][i],
-                'File_lines' : elements_dict['element_line_number'][i],
-                'Function_name' : element_name,
-                'Function_type' : element_type,
-                'Function_code' : code_str,      
-                'Function_values': values_dict
-            }
-            )        
+                #-------------------------------------
+                # add values:  
+                element['Values'] = ''
+
+                #-------------------------------------
+                # output:
+                element_profile_list.append(element)        
+                
+                #-------------------------------------
+                # Store values of functions for identyfiying dependencies
+#                 dependency_name_dict[element_name] = dependency_name_dict.get(element_name, []) + [file_name]
+
             
-    return element_profile_list, dependency_name_list
-
-
-
+    return element_profile_list, dependency_name_dict
 
 
 def extract_element_values(code_str, element_type):
@@ -278,68 +366,10 @@ def extract_element_values(code_str, element_type):
     values_dict['Output_var'].extend(output_list)
     
     return values_dict
-    
-    
-    
-def extract_import_values(code_str):
-    
-    """
-    Extract imported libraries and functions
-    """
-    
-    import re
-    
-    # Clean code string:
-    import_element = re.sub('#(.*)\n?', '', code_str) # Comments
-    import_element = re.sub(" as (.*)","", import_element) # Aliases
-    import_element = re.sub("\n","", import_element)
-        
-        
-    # Identify scenarios:
-    #     - from <library> import <function> or from <library> import (<function>,<function>)
-    #     - import <library>.<library>.<function>
-    #     - import <library>
-    
-    if 'from ' in import_element:
-        # fetch library:
-        library_name = " ".join(re.findall("from (.*) import", import_element))
-
-        # Fetch imported functions
-        functions_all = " ".join(re.findall("import (.*)", import_element, re.DOTALL)) 
-        function_list = re.findall("[a-zA-Z_]+", functions_all)
-        
-        
-    # Check for scenario 2
-    elif "." in import_element:
-        
-        # Split string by '.'
-        library_functions_str = " ".join(re.findall("import (.*?) ", import_element)).split(".")
-
-        # fetch library:
-        library_name = " ".join(library_functions_str[:-1])
-        
-        # Fetch imported functions
-        function_list = library_functions_str[-1:]
-
-    # check for scenario 3
-    elif "import " in import_element:
-
-        # remove leading text before import
-        all_functions = " ".join(import_element.split('import')[1:]) 
-
-        # Fetch library:
-        library_name = " ".join(re.findall("[a-zA-Z_]+", all_functions, re.DOTALL))
-
-        # No imported functions
-        function_list = []        
-
-    return {library_name: function_list}    
 
 
-
-
-
-def get_dependencies(element_dict, dependency_name_list):
+#================================================================
+def get_dependencies(code_list, dependency_name_dict, import_dict):
     
     """
     Function searches for all elements and get their order of invocation and input parameters.
@@ -351,60 +381,89 @@ def get_dependencies(element_dict, dependency_name_list):
     dependency_list = []
     
     # Go through all elements in dictionary:
-    for i in range(len(element_dict['element_code'])):
-
-        # fetch type of structure:
-        code_type = element_dict['element_type'][i]  
-        
-        if code_type == 'Function' or code_type == 'Class' or code_type == 'Code':
+    for element in code_list:
             
-            # fetch code string
-            code_str = element_dict['element_code'][i]
-            if code_str.strip() == '':
-                continue        
+        # Fetch values:
+        code_type = element['element_type'] # type of structure
+        if code_type == 'Function' or code_type == 'Class' or code_type == 'Code':
         
-            # Fetch element name:
-            if code_type == 'Function' or code_type == 'Class':
-                elem_name = element_dict['element_name'][i]
-            else: 
-                elem_name = element_dict['file_name'][i]
-                
-            # Create search string:
-            search_list_cleaned = [x for x in dependency_name_list if x != elem_name] # Create list without current function
-            search_list_str = '(' + r'\(.*?\))|('.join(search_list_cleaned) + '\(.*?\))' # Generate search pattern
+            # fetch values
+            elem_name = element['element_name'] # element name 
+            file_name = element['file_name']    # file name:
+            code_str = element['element_code']  # code string
+            if code_str.strip() == '': # skip empty strings
+                continue    
+            
+            # Create search pattern:
+            search_list_cleaned = [x for x in dependency_name_dict.keys() if x != elem_name]
+            search_list_str = '(' + r'\(.*?\))|('.join(search_list_cleaned) + '\(.*?\))' 
+            if search_list_cleaned == []: # Skip if list is empty
+                continue  
             
             # Find all occurences in code
             found_values = re.findall(search_list_str, code_str, re.DOTALL)
-            if found_values == []:
+            if found_values == []: # Skip if nothing found
                 continue  
-                
+            
             # Go through all occurences, identify order of invocation and input parameters
             order_num = 1
             for row in found_values:
-                for element in list(row):
-                    if element != '':
+                for component in list(row):
+                    if component != '':
+                        # Reset to avoid cross contamination
+                        file_dependent_name = ''
                         
-                        # Fetch function name
-                        func_name = re.findall('(.*?)\(', element, re.DOTALL)[0]
+                        # Fetch dependent function name
+                        elem_dependent_name = re.findall('(.*?)\(', component, re.DOTALL)[0]
+
+                        # fetch dependent input params
+                        input_param = re.findall('\((.*?)\)', component, re.DOTALL)[0].split(',')
+                        input_param_clean = [i.replace('\n','').strip() for i in input_param]   # Clean code from newline and empty spaces      
+
+                        # fetch dependent library
+                        dependent_library_name = dependency_name_dict[elem_dependent_name]
                         
-                        # fetch input params
-                        input_param = re.findall('\((.*?)\)', element, re.DOTALL)[0].split(',')
-                        
-                        # Clean code from newline and empty spaces
-                        input_param_clean = [i.replace('\n','').strip() for i in input_param]         
-                        
+                        # Check if dependent function is in one library: 
+                        if len(dependent_library_name) == 1:
+                            file_dependent_name = dependent_library_name[0]
+                            
+                        # if dependent function has multiple sources:
+                        else:
+                            
+                            # Consult import statements in file:
+                            import_value = import_dict[file_name]['Function_values'] # fetch all imported 
+                            for key, value in import_value.items():
+                                
+                                # find match by function name
+                                if elem_dependent_name in value:
+                                    
+                                    # pull library name:
+                                    library_name = key.split('.')[-1]+ '.py'
+                                    
+                                    # Cross reference with sources:
+                                    if library_name in dependent_library_name:
+                                        file_dependent_name = library_name
+                                    
+                            # No match - check if func declared in source file
+                            if file_dependent_name == '' and file_name in dependent_library_name:
+                                 file_dependent_name = file_name
+                                    
+                            # Otherwise put all sources
+                            elif file_dependent_name == '':
+                                file_dependent_name = dependent_library_name
+
                         # output information
                         output_dict = {'function_from': elem_name,
-                                       'function_to': func_name,
+                                       'function_to': elem_dependent_name,
+                                       'file_from': file_name,
+                                       'file_to': file_dependent_name,
                                        'values' : {'Invocation_order': order_num,
                                                    'Input_parameters': input_param_clean}
                                       }
                         dependency_list.append(output_dict)
-                        
+
                         # increase order
                         order_num += 1
-            
+
     return dependency_list
-
-
 
