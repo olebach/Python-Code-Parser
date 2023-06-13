@@ -190,7 +190,7 @@ def extract_import_values(code_str):
     
     # Clean code string:
     import_element = re.sub('#(.*)\n?', '', code_str) # Comments
-    import_element = re.sub(" as (.*)","", import_element) # Aliases
+#     import_element = re.sub(" as (.*)","", import_element) # Aliases
     import_element = re.sub("\n","", import_element)
            
 
@@ -233,6 +233,7 @@ def extract_import_values(code_str):
 
 
 def get_imports(code_list, file_name, file_path):
+    import re
         
     """
     Extract imported libraries and functions
@@ -240,6 +241,7 @@ def get_imports(code_list, file_name, file_path):
     
     # Output list:    
     values_dict = {}
+    aliases_dict = {}
     
     # Go through all elements:
     for element in code_list:
@@ -254,17 +256,26 @@ def get_imports(code_list, file_name, file_path):
             code_str = element['element_code']
             
             # extract imports:
-            library_name, function_list = extract_import_values(code_str)
+            library_name_full, function_list = extract_import_values(code_str)
+            
+            # Extract aliases
+            library_str = library_name_full.split(' as ')
             
             # Add or append values to dict
-            values_dict[library_name] = values_dict.get(library_name, []) + function_list
+            values_dict[library_str[0]] = values_dict.get(library_str[0], []) + function_list
+            
+            # Add or append aliases
+            if len(library_str) > 1:
+                aliases_dict[library_str[0]] = aliases_dict.get(library_str[0], []) + library_str[1:]
+            
             
     #-------------------------------------
     #output dictionary:
     import_dict = {
         'File_name' : file_name,
         'File_location' : file_path,
-        'Function_values': values_dict
+        'Function_values': values_dict,
+        'library_aliases': aliases_dict
     }
         
     return import_dict
@@ -450,7 +461,23 @@ def get_dependencies(code_list, dependency_name_dict, import_dict):
                                     
                             # Otherwise put all sources
                             elif file_dependent_name == '':
-                                file_dependent_name = dependent_library_name
+                                
+                                library_name_len = len(dependent_library_name)-1
+                                for i in range(library_name_len):
+                                    # output information
+                                    output_dict = {'function_from': elem_name,
+                                                   'function_to': elem_dependent_name,
+                                                   'file_from': file_name,
+                                                   'file_to': dependent_library_name[i],
+                                                   'values' : {'Invocation_order': order_num,
+                                                               'Input_parameters': input_param_clean}
+                                                  }
+                                    dependency_list.append(output_dict)
+                                
+                                file_dependent_name = dependent_library_name[library_name_len]
+                                
+                                
+                                
 
                         # output information
                         output_dict = {'function_from': elem_name,
@@ -466,4 +493,87 @@ def get_dependencies(code_list, dependency_name_dict, import_dict):
                         order_num += 1
 
     return dependency_list
+
+
+
+#================================================================
+
+def identify_pattern_lines(code_strings, search_patterns, file_name, file_path):
+    
+    # 0. Output dict
+    output_dict = {
+        'File': [],
+        'Location': [],
+        'Lines': [],
+        'Code': []
+    }
+    
+    
+    
+    # 1. Split text by lines:
+    code_lines = code_strings.splitlines()
+    
+    # Set line num
+    line_num = 1
+    
+    # loop through all lines
+    for line in code_lines:
+        
+        # Check for input
+        if bool([ele for ele in search_patterns if(ele in line)]):
+            output_dict['File'].append(file_name)
+            output_dict['Location'].append(file_path)
+            output_dict['Lines'].append(line_num)
+            output_dict['Code'].append(line)
+            
+#         if ('read_excel' in line) or ('read_pickle' in line) or ('read_csv' in line)
+#         if ('LOGGER' in line) or ('print(' in line) or ('to_pickle' in line) or ('to_csv' in line) or ('pickle.dump' in line):      
+        
+        # increase line number
+        line_num +=1
+    
+    return output_dict
+
+
+
+
+#================================================================
+
+
+def add_element_to_statements(found_dict, code_list):
+
+    # Technical lists
+    element_name_list = []
+    element_type_list = []
+
+
+    # loop through all found elements
+    for i in range(len(found_dict['File'])):
+        # get element data:
+        found_file = found_dict['File'][i]
+        found_line = found_dict['Lines'][i]
+
+        # if not found
+        element_name = ''
+        element_type = ''
+
+        # loop through all elements:
+        for element in code_list:
+            file_name = element['file_name']
+            file_line_from = int(element['file_line_number'].replace('Lines: ','').split('-')[0])
+            file_line_to = int(element['file_line_number'].replace('Lines: ','').split('-')[-1])        
+            if (found_file==file_name) and (file_line_from<=found_line and found_line<=file_line_to):
+                element_name = element['element_name']
+                element_type = element['element_type']
+
+        # Add to output lists
+        element_name_list.append(element_name)
+        element_type_list.append(element_type)
+
+    # Final output
+    found_dict['Element name'] = element_name_list
+    found_dict['Element type'] = element_type_list
+    
+    return found_dict
+
 

@@ -1,0 +1,61 @@
+File,Location,Lines,Code,Element name,Element type
+initialise_run.py,\engine\initialise_run.py,450.0,"    df_qualitative_score_params = pd.read_excel(io=full_path, sheet_name=""qualitative_weights"")",run_model,Function
+initialise_run.py,\engine\initialise_run.py,451.0,"    df_combined_score_params = pd.read_excel(io=full_path, sheet_name=""combined_score_params"")",run_model,Function
+initialise_run.py,\engine\initialise_run.py,454.0,"    df_calibration_params = pd.read_excel(io=full_path, sheet_name=""pd_cal_table"")",run_model,Function
+read_deal_template.py,\engine\data_layer\read_deal_template.py,218.0,"    output_sheet = pd.read_excel(io=path, sheet_name=sheet_name)",read_sheet,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,36.0,    df_forex = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,42.0,    df_interests = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,48.0,"    df_currency_ir = pd.read_excel(io=parameter_dir, sheet_name=""currency_IR_mapping"")",read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,51.0,    df_rev_volatilities = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,55.0,    df_price_volatilities = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,59.0,    df_cost_volatilities = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,63.0,    df_volume_volatilities = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,67.0,    df_revenue_mitigating_factor_volatilities = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,73.0,    df_costs_delays = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,79.0,    df_pd_mapping_ext = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,83.0,    df_pd_mapping_int = pd.read_excel(,read_param_excel,Function
+read_parameters.py,\engine\data_layer\read_parameters.py,89.0,"    df_approach_overrides = pd.read_excel(io=parameter_dir, sheet_name=""approach_overrides"")",read_param_excel,Function
+read_qual_input.py,\engine\data_layer\read_qual_input.py,33.0,"        df_qual_input_full = pd.read_pickle(full_path[:-5] + "".p"")",read_qual_input,Function
+read_qual_input.py,\engine\data_layer\read_qual_input.py,35.0,"        df_qual_input_full = pd.read_excel(io=full_path, sheet_name=""Sheet1"")",read_qual_input,Function
+read_qual_input.py,\engine\data_layer\read_qual_input.py,113.0,"        df_scoping_full = pd.read_pickle(full_path[:-5] + "".p"")",read_scoping_input,Function
+read_qual_input.py,\engine\data_layer\read_qual_input.py,115.0,"        df_scoping_full = pd.read_excel(io=full_path, sheet_name=""Sheet1"")",read_scoping_input,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,20.0,"            data = pd.read_excel(io=path, sheet_name=sheet, skiprows=row)",read_in_excel,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,29.0,"            data = pd.read_pickle(path[:-5] + sheet + "".p"")",read_in_excel,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,31.0,"        data = pd.read_excel(io=path, sheet_name=sheet, skiprows=row)",read_in_excel,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,496.0,"        expected_files_list = pd.read_csv(expected_files_list_fp, sep=""\n"")",check_files_processed_against_previous_run,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,597.0,        df_quant_score = pd.read_csv(quant_score_location),create_master_pd_output_file,Function
+post_engine_scope_qualitative_score.py,\engine\utils\post_engine_scope_qualitative_score.py,599.0,"        df_quant_score = pd.read_csv(os.path.join(settings.output_dir / ""all_pd_project_info.csv""))",create_master_pd_output_file,Function
+lgd_discriminatory_power_tests_excel_input.py,\scripts\analysis_scripts\lgd_discriminatory_power_tests_excel_input.py,12.0,"    quant_data_pd = pd.read_excel(io=path, sheet_name=sheet_name, skiprows=4)",read_in_excel_quant,Function
+lgd_discriminatory_power_tests_excel_input.py,\scripts\analysis_scripts\lgd_discriminatory_power_tests_excel_input.py,116.0,"    model_development_df = pd.read_excel(excel_file, sheet_name=""Scoping File_Dev"", skiprows=4)",lgd_discriminatory_power_tests_excel_input.py,Code
+lgd_discriminatory_power_tests_excel_input.py,\scripts\analysis_scripts\lgd_discriminatory_power_tests_excel_input.py,117.0,"    current_portfolio_df = pd.read_excel(excel_file, sheet_name=""Scoping File_Current"", skiprows=4)",lgd_discriminatory_power_tests_excel_input.py,Code
+pd_discriminatory_power_abt.py,\scripts\analysis_scripts\pd_discriminatory_power_abt.py,2.0,from pandas import read_csv,pd_discriminatory_power_abt.py,Import
+pd_discriminatory_power_abt.py,\scripts\analysis_scripts\pd_discriminatory_power_abt.py,22.0,    df = read_csv(,read_and_clean_input_data,Function
+pd_discriminatory_power_tests_excel_input.py,\scripts\analysis_scripts\pd_discriminatory_power_tests_excel_input.py,11.0,"    quant_data_pd = pd.read_excel(io=path, sheet_name=""Scoping File"", skiprows=4)",read_in_excel_quant,Function
+pd_discriminatory_power_tests_smaller_input.py,\scripts\analysis_scripts\pd_discriminatory_power_tests_smaller_input.py,12.0,"    quant_data_pd = pd.read_excel(io=path, sheet_name=sheet_name, skiprows=4)",read_in_excel_quant,Function
+pd_discriminatory_power_tests_smaller_input.py,\scripts\analysis_scripts\pd_discriminatory_power_tests_smaller_input.py,96.0,"    model_development_df = pd.read_excel(excel_file, sheet_name=""Scoping File_Dev"", skiprows=4)",pd_discriminatory_power_tests_smaller_input.py,Code
+pd_discriminatory_power_tests_smaller_input.py,\scripts\analysis_scripts\pd_discriminatory_power_tests_smaller_input.py,97.0,"    current_portfolio_df = pd.read_excel(excel_file, sheet_name=""Scoping File_Current"", skiprows=4)",pd_discriminatory_power_tests_smaller_input.py,Code
+Revenue_backtest.py,\scripts\analysis_scripts\Revenue_backtest.py,25.0,"data = pd.read_excel(path_inout + ""//"" + file, sheet_name=""cleaned_no_dup"")",Revenue_backtest.py,Code
+aggregate_templates_for_qa.py,\scripts\engine_scripts\aggregate_templates_for_qa.py,140.0,"approved_templates = pd.read_csv(""approved_templates.csv"").values",aggregate_templates_for_qa.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,10.0,"legal_entity_pd = pd.read_excel(data_filepath, sheet_name=""Legal Entity PD"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,11.0,"deal_totals = pd.read_excel(data_filepath, sheet_name=""Deal Totals"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,12.0,"risk_parameters = pd.read_excel(data_filepath, sheet_name=""Risk Parameters"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,13.0,"lgd_ead = pd.read_excel(data_filepath, sheet_name=""LGD_EAD"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,14.0,"yearlypd = pd.read_excel(data_filepath, sheet_name=""YearlyPD"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+dashboard_sector_splitter.py,\scripts\engine_scripts\dashboard_sector_splitter.py,16.0,"scoping_file = pd.read_excel(scoping_filepath, sheet_name=""Scoping File"", engine=""openpyxl"")",dashboard_sector_splitter.py,Code
+lgd_calibration_script.py,\scripts\lgd_calibration\lgd_calibration_script.py,20.0,"    df = pd.read_excel(results_excel, sheet_name=sheet, skiprows=row)",read_in_lgd_results,Function
+lgd_calibration_stability.py,\scripts\lgd_calibration\lgd_calibration_stability.py,20.0,"    df_current = pd.read_excel(results_excel, sheet_name='Current Portfolio Results')",read_in_lgd_results,Function
+lgd_calibration_stability.py,\scripts\lgd_calibration\lgd_calibration_stability.py,21.0,"    df_historical_perf = pd.read_excel(results_excel, sheet_name='Historical Performing Results')",read_in_lgd_results,Function
+lgd_calibration_stability.py,\scripts\lgd_calibration\lgd_calibration_stability.py,22.0,"    df = pd.read_excel(results_excel, sheet_name='Sample Creation MoC')",read_in_lgd_results,Function
+margins_of_conservatism.py,\scripts\lgd_calibration\margins_of_conservatism.py,18.0,"    quant_data_pd = pd.read_excel(io=path, sheet_name=""Scoping File"", skiprows=4)",read_in_excel_quant,Function
+test_utils.py,\testing\test_utils.py,54.0,            pd.read_csv(,DataFrameTestCase,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,14.0,        expected_output = df_deal_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,23.0,        df_tranche_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,39.0,        expected_output = df_deal_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,48.0,        df_tranche_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,68.0,        expected_output = df_deal_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,140.0,        expected_output = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_cash_waterfall_functions.py,\testing\unit_tests\test_cash_waterfall_functions.py,149.0,        df_tranche_totals = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_interests.py,\testing\unit_tests\test_interests.py,77.0,        expected_output = pd.read_csv(,TestInterests,Class
+test_read_in.py,\testing\unit_tests\test_read_in.py,125.0,        expected_output_df_interests = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_read_in.py,\testing\unit_tests\test_read_in.py,133.0,        expected_output_df_forex = pd.read_csv(,TestCashWaterfallFunctions,Class
+test_revenue.py,\testing\unit_tests\test_revenue.py,63.0,        test_output = pd.read_csv(,TestRevenue,Class
